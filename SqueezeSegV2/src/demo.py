@@ -17,23 +17,24 @@ from six.moves import xrange
 import tensorflow as tf
 from PIL import Image
 
-from config import *
-from imdb import kitti
-from utils.util import *
-from nets import *
+from src.config import kitti_squeezeSeg_config
+from src.utils.util import *
+from src.nets import *
+from src.imdb.kitti import kitti
 
-FLAGS = tf.app.flags.FLAGS
 
 tf.app.flags.DEFINE_string(
-        'checkpoint', './data/SqueezeSegV2/model.ckpt-30700',
+        'checkpoint', '../data/SqueezeSegV2/model.ckpt-30700',
         """Path to the model parameter file.""")
 tf.app.flags.DEFINE_string(
-        'input_path', './data/samples/*',
+        'input_path', '../data/samples/*',
         """Input lidar scan to be detected. Can process glob input such as """
         """./data/samples/*.npy or single input.""")
 tf.app.flags.DEFINE_string(
-        'out_dir', './data/samples_out/', """Directory to dump output.""")
+        'out_dir', '../data/samples_out/', """Directory to dump output.""")
 tf.app.flags.DEFINE_string('gpu', '0', """gpu id.""")
+
+FLAGS = tf.app.flags.FLAGS
 
 def _normalize(x):
   return (x - x.min())/(x.max() - x.min())
@@ -44,12 +45,13 @@ def detect():
   os.environ['CUDA_VISIBLE_DEVICES'] = FLAGS.gpu
 
   with tf.Graph().as_default():
-    mc = kitti_squeezeSeg_config()
+    mc = kitti_squeezeSeg_config.kitti_squeezeSeg_config()
     mc.LOAD_PRETRAINED_MODEL = False
     mc.BATCH_SIZE = 1 # TODO(bichen): fix this hard-coded batch size.
-    model = SqueezeSeg(mc)
+    model = squeezeSeg.SqueezeSeg(mc)
 
     saver = tf.train.Saver(model.model_params)
+
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
       saver.restore(sess, FLAGS.checkpoint)
       for f in glob.iglob(FLAGS.input_path):

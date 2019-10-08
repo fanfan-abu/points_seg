@@ -6,11 +6,12 @@ import os
 import numpy as np
 import subprocess
 
-from imdb import imdb
+from src.imdb.imdb import imdb
 
 class kitti(imdb):
   def __init__(self, image_set, data_path, mc):
     imdb.__init__(self, 'kitti_'+image_set, mc)
+    # im = imdb(self, 'kitti_'+image_set, mc)
     self._image_set = image_set
     self._data_root_path = data_path
     self._lidar_2d_path = os.path.join(self._data_root_path, 'lidar_2d')

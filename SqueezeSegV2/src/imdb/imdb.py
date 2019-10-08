@@ -8,7 +8,7 @@ import shutil
 
 import numpy as np
 
-from utils.util import *
+from src.utils.util import *
 
 class imdb(object):
   """Image database."""

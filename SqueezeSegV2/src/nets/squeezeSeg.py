@@ -10,10 +10,10 @@ import os
 import sys
 
 import joblib
-from utils import util
+from src.utils import util
 import numpy as np
 import tensorflow as tf
-from nn_skeleton import ModelSkeleton
+from src.nn_skeleton import ModelSkeleton
 
 class SqueezeSeg(ModelSkeleton):
   def __init__(self, mc, gpu_id_1=0, gpu_id_2=1, gpu_id_3=2):
