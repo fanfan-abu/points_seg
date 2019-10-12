@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData">
+    <serverData>
+      <paths name="zhun.sun@10.68.0.15:22">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/users/zhun.sun/points_seg/SqueezeSegV2" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>

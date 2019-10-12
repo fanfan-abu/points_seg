@@ -9,7 +9,7 @@ from __future__ import print_function
 import os
 import sys
 
-from utils import util
+from src.utils import util
 import numpy as np
 import tensorflow as tf
 
@@ -278,6 +278,7 @@ class ModelSkeleton:
       channels = inputs.get_shape()[3]
       if mc.LOAD_PRETRAINED_MODEL:
         cw = self.caffemodel_weight
+        # import pdb;pdb.set_trace()
         if conv_param_name in cw:
           kernel_val = np.transpose(cw[conv_param_name][0], [2,3,1,0])
           if conv_with_bias:

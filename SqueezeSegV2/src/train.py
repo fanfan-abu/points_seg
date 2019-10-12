@@ -17,26 +17,26 @@ from six.moves import xrange
 import tensorflow as tf
 import threading
 
-from config import *
-from imdb import kitti
-from utils.util import *
-from nets import *
+from src.config import *
+from src.imdb import kitti
+from src.utils.util import *
+from src.nets import *
 
 FLAGS = tf.app.flags.FLAGS
 
 tf.app.flags.DEFINE_string('dataset', 'KITTI',
                            """Currently only support KITTI dataset.""")
-tf.app.flags.DEFINE_string('data_path', '', """Root directory of data""")
+tf.app.flags.DEFINE_string('data_path', '../data', """Root directory of data""")
 tf.app.flags.DEFINE_string('image_set', 'train',
                            """ Can be train, trainval, val, or test""")
-tf.app.flags.DEFINE_string('train_dir', '/tmp/bichen/logs/squeezeseg/train',
+tf.app.flags.DEFINE_string('train_dir', '../tmp/bichen/logs/squeezeseg/train',
                             """Directory where to write event logs """
                             """and checkpoint.""")
-tf.app.flags.DEFINE_integer('max_steps', 1000000,
+tf.app.flags.DEFINE_integer('max_steps', 10000,
                             """Maximum number of batches to run.""")
 tf.app.flags.DEFINE_string('net', 'squeezeSeg',
                            """Neural net architecture. """)
-tf.app.flags.DEFINE_string('pretrained_model_path', '',
+tf.app.flags.DEFINE_string('pretrained_model_path', '../data/SqueezeNet/squeezenet_v1.1.pkl',
                            """Path to the pretrained model.""")
 tf.app.flags.DEFINE_integer('summary_step', 50,
                             """Number of steps to save summary.""")
@@ -57,12 +57,12 @@ def train():
         'Selected neural net architecture not supported: {}'.format(FLAGS.net)
 
     if FLAGS.net == 'squeezeSeg':
-      mc = kitti_squeezeSeg_config()
+      mc = kitti_squeezeSeg_config.kitti_squeezeSeg_config()
       mc.TRAINING = True
       mc.PRETRAINED_MODEL_PATH = FLAGS.pretrained_model_path
-      model = SqueezeSeg(mc)
+      model = squeezeSeg.SqueezeSeg(mc)
 
-    imdb = kitti(FLAGS.image_set, FLAGS.data_path, mc)
+    imdb = kitti.kitti(FLAGS.image_set, FLAGS.data_path, mc)
 
     # save model size, flops, activations by layers
     with open(os.path.join(FLAGS.train_dir, 'model_metrics.txt'), 'w') as f:
@@ -111,7 +111,7 @@ def train():
     summary_op = tf.summary.merge_all()
     init = tf.initialize_all_variables()
 
-    sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
+    sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True,log_device_placement=True))
     sess.run(init)
     # saver.restore(sess, './log/train/model.ckpt-1500')
 
@@ -120,6 +120,7 @@ def train():
 
     coord = tf.train.Coordinator()
     enq_threads = []
+    # import pdb;pdb.set_trace()
     for _ in range(mc.NUM_ENQUEUE_THREAD):
       eqth = threading.Thread(target=enqueue, args=[sess, coord])
       eqth.start()
@@ -178,6 +179,7 @@ def train():
 
           # force tensorflow to synchronise summaries
           summary_writer.flush()
+          # label_per_batcevaluate_iouh.append(label)
 
         else:
           _, loss_value, cls_loss_value = sess.run(
@@ -185,10 +187,10 @@ def train():
 
         duration = time.time() - start_time
 
-        assert not np.isnan(loss_value), \
-            'Model diverged. Total loss: {}, conf_loss: {}, bbox_loss: {}, ' \
-            'class_loss: {}'.format(loss_value, conf_loss, bbox_loss,
-                                    class_loss)
+        # assert not np.isnan(loss_value), \
+        #     'Model diverged. Total loss: {}, conf_loss: {}, bbox_loss: {}, ' \
+        #     'class_loss: {}'.format(loss_value, conf_loss, bbox_loss,
+        #                             class_loss)
 
         if step % 10 == 0:
           num_images_per_step = mc.BATCH_SIZE
@@ -204,8 +206,8 @@ def train():
         if step % FLAGS.checkpoint_step == 0 or step == FLAGS.max_steps-1:
           checkpoint_path = os.path.join(FLAGS.train_dir, 'model.ckpt')
           saver.save(sess, checkpoint_path, global_step=step)
-    except Exception, e:
-      coord.request_stop(e)
+    except Exception as e:
+        coord.request_stop(e)
     finally:
       coord.request_stop()
       sess.run(model.q.close(cancel_pending_enqueues=True))
